@@ -1,6 +1,10 @@
 require "bundler/setup"
 require "moleculer"
-require 'simplecov'
+require "simplecov"
+
+Moleculer.config do |config|
+  config.logger = nil
+end
 
 
 RSpec.configure do |config|
