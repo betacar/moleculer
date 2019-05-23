@@ -28,9 +28,9 @@ module Moleculer
       end
 
       def fetch_next_node
-        node                                = active_nodes.min_by { |a| a[:last_requested_at] }&[:node]
+        node                                = active_nodes.min_by { |a| a[:last_requested_at] }
         return if node.nil?
-        @nodes[node.id][:last_requested_at] = Time.now
+        @nodes[node[:node].id][:last_requested_at] = Time.now
         node
       end
 
