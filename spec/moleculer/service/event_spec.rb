@@ -1,52 +1,27 @@
 RSpec.describe Moleculer::Service::Event do
-  let(:config) { Moleculer::Configuration.new }
-  let(:broker) { instance_double(Moleculer::Broker, config: config, rescue_event: nil) }
+  let(:service_instance) { double(Moleculer::Service::Base, some_method: true) }
+  let(:service) { class_double(Moleculer::Service::Base, new: service_instance, node: node) }
+  let(:node) { instance_double(Moleculer::Node) }
+  let(:broker) { Moleculer::Broker.new(Moleculer::Configuration.new) }
 
-  subject do
-    Moleculer::Service::Event.new(
-      "event.name",
-      service,
-      :some_method,
-      some: "options",
-      rescue_event: nil
-    )
-  end
+  subject { Moleculer::Service::Event.new("event.name", service, :some_method, some: "options") }
 
   describe "#execute" do
-    subject { Moleculer::Service::Event.new("test", service, :test_event) }
-
-    describe "an exception is raised when no rescue_event handler is configured" do
-      let(:service) do
-        Class.new(Moleculer::Service::Base) do
-          def test_event(_)
-            raise StandardError, "test error"
-          end
-        end
-      end
-
-      it "raises an exception if a hash is not returned" do
-        expect { subject.execute({}, broker) }.to raise_error(StandardError)
-      end
+    it "sends the method with the provided argument" do
+      subject.execute({foo: "bar"}, broker)
+      expect(service_instance).to have_received(:some_method).with(foo: "bar")
     end
+  end
 
-    describe "rescue_event is configured" do
-      let(:errors) { [] }
-      let(:service) do
-        Class.new(Moleculer::Service::Base) do
-          def test_event(_)
-            raise StandardError, "test error"
-          end
-        end
-      end
+  describe "#node" do
+    it "returns the service's node" do
+      expect(subject.node).to eq node
+    end
+  end
 
-      before :each do
-        allow(broker).to receive(:rescue_event).and_return(-> (e) { errors << e })
-      end
-
-      it "handles the error using the rescue_event proc" do
-        subject.execute({}, broker)
-        expect(errors.last).to be_instance_of(StandardError)
-      end
+  describe "#as_json" do
+    it "returns the correct json for the event" do
+      expect(subject.as_json).to eq(name: subject.name)
     end
   end
 end

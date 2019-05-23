@@ -1,57 +1,26 @@
-require_relative "../../spec_helper"
-require_relative "../../../lib/moleculer/transporters/redis"
+require "moleculer/transporters/redis"
 RSpec.describe Moleculer::Transporters::Redis do
   before :each do
-    subject.start
+    allow(::Redis).to receive(:new).and_return(instance_double(::Redis::Client))
   end
 
-  after :each do
-    subject.stop
+  subject { Moleculer::Transporters::Redis.new(Moleculer::Configuration.new)}
+
+  # Most of the testing here takes place in the integration test, this simply tests that redis complies with the
+  # expected interface
+  it "responds to #publish" do
+    expect(subject).to respond_to(:publish)
   end
 
-  ##
-  # this allows us to wait until the transporter as fully connected
-  subject do
-    Class.new(Moleculer::Transporters::Redis) do
-      attr_reader :started
-
-      def start
-        super
-        while !subscriber.instance_variable_get(:@started)
-          sleep 0.1
-        end
-      end
-    end.new(Moleculer::Configuration.new)
+  it "responds to subscribe" do
+    expect(subject).to respond_to(:subscribe)
   end
 
-  describe "#publis/scubscribe" do
-    let(:packet) do
-      instance_double(Moleculer::Packets::Info,
-                      topic:   "MOL.INFO.test-321",
-                      as_json: { sender:   "test-123",
-                                 ver:      "3",
-                                 services: [],
-                                 ipList:   [],
-                                 config:   {},
-                                 hostname: "thehost",
-                                 client:   {
-                                   type:        1,
-                                   version:     1,
-                                   langVersion: 1,
-                                 } })
-    end
+  it "responds to #connect" do
+    expect(subject).to respond_to(:connect)
+  end
 
-    it "is capable of publishing packets and receiving them" do
-      received = false
-      subject.subscribe(packet.topic) do
-        received = true
-      end
-
-      sleep 0.5
-
-      subject.publish(packet)
-      sleep 0.1 until received
-      expect(received).to be_truthy
-    end
+  it "responds to #disconnect" do
+    expect(subject).to respond_to(:disconnect)
   end
 end

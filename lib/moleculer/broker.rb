@@ -93,7 +93,7 @@ module Moleculer
 
     def start
       @logger.info "starting"
-      @transporter.start
+      @transporter.connect
       register_local_node
       start_subscribers
       publish_discover
@@ -105,7 +105,7 @@ module Moleculer
     def stop
       @logger.info "stopping"
       publish(:disconnect)
-      @transporter.stop
+      @transporter.disconnect
       exit 0
     end
 
@@ -170,18 +170,6 @@ module Moleculer
         stream:  false,
         node:    node,
       )
-    end
-
-    ##
-    # @return [Proc] returns the rescue_action if defined on the configuration
-    def rescue_action
-      config.rescue_action
-    end
-
-    ##
-    # @return [Proc] returns the rescue_event if defined on the configuration
-    def rescue_event
-      config.rescue_event
     end
 
     private
