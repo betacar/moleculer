@@ -74,7 +74,7 @@ module Moleculer
       def fetch_action(action_name)
         raise Errors::ActionNotFound, "The action '#{action_name}' was not found." unless @actions[action_name]
 
-        @actions[action_name].fetch_next_node.actions[action_name]
+        @actions[action_name].fetch_next_node&.actions[action_name]
       end
     end
 
